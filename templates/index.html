@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Picon Dashboard</title>
+    <style>
+        :root {
+            --bg: #fff;
+            --fg: #000;
+            --table-bg: #f4f4f4;
+            --ok-color: green;
+            --missing-color: red;
+        }
+
+        body.dark {
+            --bg: #121212;
+            --fg: #f0f0f0;
+            --table-bg: #1e1e1e;
+            --ok-color: #00ff88;
+            --missing-color: #ff6f6f;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--fg);
+            font-family: Arial, sans-serif;
+            margin: 2em;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+        }
+
+        th, td {
+            padding: 0.5em;
+            border: 1px solid #444;
+            text-align: left;
+        }
+
+        th {
+            background: var(--table-bg);
+        }
+
+        .missing {
+            color: var(--missing-color);
+        }
+
+        .ok {
+            color: var(--ok-color);
+        }
+
+        .toggle-section {
+            margin-bottom: 1em;
+        }
+
+        label {
+            margin-right: 1em;
+        }
+
+        a {
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+    <h1>Picon Dashboard</h1>
+
+    <div class="toggle-section">
+        <label><input type="checkbox" id="toggle-missing"> Show only missing</label>
+        <label><input type="checkbox" id="toggle-darkmode"> Dark mode</label>
+        <a href="/missing-report" target="_blank" style="margin-left: 1em;">📄 View Missing Report</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Channel Name</th>
+                <th>Service Ref</th>
+                <th>SRP</th>
+                <th>Matched Picon</th> <!-- NEW COLUMN -->
+                <th>Status</th>
+                <th>Icon</th>
+            </tr>
+        </thead>
+        <tbody id="channel-table">
+            {% for channel in channels %}
+            <tr class="channel-row {{ channel.status|lower }}">
+                <td>{{ channel.name }}</td>
+                <td><code>{{ channel.service_ref }}</code></td>
+                <td><code>{{ channel.srp }}</code></td>
+                <td>{{ channel.matched if channel.matched else '—' }}</td>  <!-- NEW COLUMN DATA -->
+                <td class="{{ 'ok' if channel.status == 'OK' else 'missing' }}">{{ channel.status }}</td>
+                <td>
+                    {% if channel.icon_url %}
+                        <img src="{{ channel.icon_url }}" alt="icon" width="48">
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        const toggleMissing = document.getElementById('toggle-missing');
+        const toggleDark = document.getElementById('toggle-darkmode');
+        const body = document.body;
+
+        // Toggle missing
+        toggleMissing.addEventListener('change', () => {
+            document.querySelectorAll('.channel-row.ok').forEach(row => {
+                row.style.display = toggleMissing.checked ? 'none' : '';
+            });
+        });
+
+        // Dark mode toggle
+        toggleDark.addEventListener('change', () => {
+            body.classList.toggle('dark', toggleDark.checked);
+            localStorage.setItem('darkMode', toggleDark.checked ? '1' : '0');
+        });
+
+        // Load dark mode from previous session
+        if (localStorage.getItem('darkMode') === '1') {
+            toggleDark.checked = true;
+            body.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

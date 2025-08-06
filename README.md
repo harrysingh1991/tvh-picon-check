@@ -19,8 +19,6 @@ tvh-picon-check:
       - ./servicelist-tvheadend-servermode-srp.txt:/data/servicelist.txt:ro #path to where srp.txt is created/moved to
       - ./picons:/data/picons:ro # location where picons are saved, after creation by picons/picons
     environment:
-      SRP_FILE: /data/servicelist.txt
-      PICON_DIR: /data/picons
-      ICON_AUTH_CODE: PxMJQzcACRaT5VT3bUUkpzVBtsbE # user with access to channels that require icons
+      ICON_AUTH_CODE: PersistentPasswordGoesHere # user with access to channels that require icons
     restart: always
 ```    

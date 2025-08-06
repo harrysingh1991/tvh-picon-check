@@ -5,7 +5,7 @@ The container will retrieve a channel list from TVHeadend server, using persiste
 
 A Web server will return if any picons have been generated, for each Channel on the TVHeadend server. This is presentated in a tabular format.
 
-All channels missing a picon match and picon can be seen by a toggle. A list can be generatedd of all the channels that failed to match during the srp.txt creation, ready to be raised as an issue for missing srp references. You will need to manually match the missing channels. After manually matching the channels, these can be added to the srp.index and tested, before being raised as an Issue on picons/picons.
+All channels missing a picon match and picon can be seen by a toggle. A list can be generated of all the channels that failed to match during the srp.txt creation, ready to be raised as an issue for missing srp references. You will need to manually match the missing channels. After manually matching the channels, these can be added to the srp.index and tested, before being raised as an Issue on picons/picons.
 
 Example Docker Compose:
 

@@ -16,8 +16,8 @@ tvh-picon-check:
     ports:
       - "9986:9986"  # Change the host port if needed. 9986 is default port in the script
     volumes:
-      - ./servicelist-tvheadend-servermode-srp.txt:/data/servicelist.txt:ro #path to where srp.txt can be accessed
-      - ./picons:/data/picons:ro # location where picons are saved, after creation/moved to
+      - ./servicelist-tvheadend-servermode-srp.txt:/app/servicelist.txt:ro #path to where srp.txt can be accessed
+      - ./picons:/app/picons:ro # location where picons are saved, after creation/moved to
     environment:
       ICON_AUTH_CODE: PersistentPasswordGoesHere # user with access to channels that require icons
     restart: always

@@ -44,12 +44,20 @@
             background: var(--table-bg);
         }
 
-        .missing {
-            color: var(--missing-color);
+        th.status-header, th.icon-header {
+            text-align: center;
         }
-
+        td.status-cell, td.icon-cell {
+            text-align: center;
+        }
+        td.channel-name, td.service-ref, td.srp, td.matched {
+            /* Color based on status */
+        }
         .ok {
             color: var(--ok-color);
+        }
+        .missing {
+            color: var(--missing-color);
         }
 
         .toggle-section {
@@ -63,6 +71,32 @@
         a {
             color: inherit;
         }
+
+        .icon-img {
+            max-width: 40px;
+            max-height: 40px;
+            width: auto;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        td.icon-cell {
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        td.status-cell {
+            text-align: center;
+        }
+        td {
+            vertical-align: middle;
+        }
+        td.exclude-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .exclude-checkbox:disabled { opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -71,33 +105,40 @@
     <div class="toggle-section">
         <label><input type="checkbox" id="toggle-missing"> Show only missing</label>
         <label><input type="checkbox" id="toggle-darkmode"> Dark mode</label>
-        <a href="/missing-report" target="_blank" style="margin-left: 1em;">📄 View Missing Report</a>
+        <a href="#" id="view-missing-report" style="margin-left: 1em;" target="_blank">📄 View Missing Report</a>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Channel Name</th>
-                <th>Service Ref</th>
-                <th>SRP</th>
-                <th>Matched Picon</th> <!-- NEW COLUMN -->
-                <th>Status</th>
-                <th>Icon</th>
+                <th>Exclude</th>
+                <th class="channel-name">Channel Name</th>
+                <th class="service-ref">Service Ref</th>
+                <th class="srp">SRP</th>
+                <th class="matched">Matched Picons</th>
+                <th class="status-header">Status</th>
+                <th class="icon-header">Icon</th>
             </tr>
         </thead>
-        <tbody id="channel-table">
+        <tbody>
             {% for channel in channels %}
-            <tr class="channel-row {{ channel.status|lower }}">
-                <td>{{ channel.name }}</td>
-                <td><code>{{ channel.service_ref }}</code></td>
-                <td><code>{{ channel.srp }}</code></td>
-                <td>{{ channel.matched if channel.matched else '—' }}</td>  <!-- NEW COLUMN DATA -->
-                <td class="{{ 'ok' if channel.status == 'OK' else 'missing' }}">{{ channel.status }}</td>
-                <td>
+            <tr class="channel-row">
+                <td class="exclude-cell">
+                    <input type="checkbox"
+                        class="exclude-checkbox"
+                        data-serviceref="{{ channel.service_ref }}"
+                        {% if channel.status == "OK" %}disabled{% endif %}>
+                </td>
+                <td class="channel-name {{ channel.status|lower }}">{{ channel.name }}</td>
+                <td class="service-ref {{ channel.status|lower }}">{{ channel.service_ref }}</td>
+                <td class="srp {{ channel.status|lower }}">{{ channel.srp }}</td>
+                <td class="matched {{ channel.status|lower }}">{{ channel.matched }}</td>
+                <td class="status-cell {{ channel.status|lower }}">{{ channel.status }}</td>
+                <td class="icon-cell">
                     {% if channel.icon_url %}
-                        <img src="{{ channel.icon_url }}" alt="icon" width="48">
+                        <img src="{{ channel.icon_url }}" class="icon-img" alt="icon">
                     {% else %}
-                        —
+                        <span style="color: #888;">Missing</span>
                     {% endif %}
                 </td>
             </tr>
@@ -105,15 +146,64 @@
         </tbody>
     </table>
 
+    <pre id="missing-report-output"></pre>
+
     <script>
+        function getExcludedRefs() {
+            let excluded = JSON.parse(localStorage.getItem("excludedRefs") || "{}");
+            return excluded;
+        }
+
+        function setExcludedRefs(excluded) {
+            localStorage.setItem("excludedRefs", JSON.stringify(excluded));
+        }
+
+        document.querySelectorAll('.exclude-checkbox').forEach(cb => {
+            const serviceRef = cb.dataset.serviceref;
+            const excluded = getExcludedRefs();
+            cb.checked = !!excluded[serviceRef];
+
+            cb.addEventListener('change', function() {
+                const excluded = getExcludedRefs();
+                if (cb.checked) {
+                    excluded[serviceRef] = true;
+                } else {
+                    delete excluded[serviceRef];
+                }
+                setExcludedRefs(excluded);
+            });
+        });
+
+        document.getElementById('view-missing-report').onclick = function(e) {
+            e.preventDefault();
+            const excluded = Object.keys(JSON.parse(localStorage.getItem("excludedRefs") || "{}"));
+            fetch('/missing-report', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({excluded})
+            })
+            .then(r => r.text())
+            .then(txt => {
+                const win = window.open("", "_blank");
+                win.document.write(txt);
+                win.document.close();
+            });
+        };
+
         const toggleMissing = document.getElementById('toggle-missing');
         const toggleDark = document.getElementById('toggle-darkmode');
         const body = document.body;
 
         // Toggle missing
         toggleMissing.addEventListener('change', () => {
-            document.querySelectorAll('.channel-row.ok').forEach(row => {
-                row.style.display = toggleMissing.checked ? 'none' : '';
+            document.querySelectorAll('.channel-row').forEach(row => {
+                // Find the status cell (6th cell, index 5)
+                const statusCell = row.querySelector('td.status-cell');
+                if (statusCell && statusCell.classList.contains('ok')) {
+                    row.style.display = toggleMissing.checked ? 'none' : '';
+                } else {
+                    row.style.display = '';
+                }
             });
         });
 

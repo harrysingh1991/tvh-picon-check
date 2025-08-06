@@ -1,0 +1,39 @@
+1. Make sure git is installed
+
+sudo apt-get install git
+
+2. Create directory where picons will be accessed from and then download picons/picons repository from github 
+
+cd [directory location]
+
+git clone https://github.com/picons/picons.git
+
+3. In TVHeadend set picons to be used over icons. Tick checkbox:
+
+Configuration > General > Base > Prefer picons over channel icons
+
+4. Reset icons path for all channels, if icon directory have previously been set up:
+
+Configuration > Channel/EPG > Channels > highlight all channels, and click on Reset Icon
+
+At this point make sure each channels icon location references each channes ServiceRef in the filename
+
+5. Add tvheadend.serverconf and backgrounds.conf to Build-Input folder, in picons directory
+
+see repository readme for example. Set 1 or two backgrounds in background.conf, otherwise it will take a while to run on Raspberry Pi
+
+6. cd to picons directory and run:
+
+./1-build-servicelist.sh
+
+it will show enigma2 failure, just wait a few minutes, it's communicating with tvheadend.
+
+7. check there is txt. output in the Build-Output folder. Inside it there will be a list of channels with matching icons. If yes, run the following command to create icons for matching channels:
+
+./2-build-picons.sh
+
+it will show enigma2 failure. Just wait a few minutes. it's communicating with tvheadend.
+
+8. extract hardlink tarball and move data to tvheadend picons directory, as set in step 2
+
+9. See exmaple Docker Compose and set up container.
